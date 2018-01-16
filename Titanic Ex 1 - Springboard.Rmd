@@ -1,0 +1,92 @@
+---
+title: "Titanic ex 1"
+author: "Carl Larson"
+date: "1/14/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+require(tidyr)
+require(dplyr)
+require(ggplot2)
+
+#Reading in the Titanic dataset training data to "dft"
+#for data frame - Titanic.
+
+dft <- read.csv("/Users/EagleFace/Downloads/titanic3.csv")
+
+head(dft)
+tail(dft)
+```
+
+To briefly note, it's apparent here that 1310 is filled with blank values, so it may seem fair to throw that one out, but it's good to be aware. 
+
+##1: Point of embarkation
+
+As we can see in the summary, 3 passengers were not stamped for their "embark" factor. To wit from the problem outline we are to put "S" here for Southampton. 
+
+
+```{r}
+#Adding "S" to missing values in embarked of the Titanic data.
+dft$embarked[dft$embarked == ""] <- "S" 
+
+#Confirming it worked
+summary(dft)
+
+```
+
+Summary is confirming this replacement has worked, there are  0 blanks and 917 instances of "S" where before we only had 914  instances of "S," and this includes the blank last row.
+
+##2: Age
+
+Next we deal with missing values in the age column, tasked to fill in those values with something that makes sense. It's plausible that missing age values will skew more towards adults who tend more than children to pretend to be younger, whereas children are usually very proud of their age. While mean age may be skewed right relative to median age, it could still be more valid because of the above. Ultimately, we are just filling in missing values, so as long as we are consistent, it would be interesting to see how this type of choice affects the overall output. 
+
+```{r}
+#Changing the class of "age" to numeric
+dft$age <- as.numeric(dft$age)
+
+#Assigning mean age variable (not nec. the terrible twos)
+mean_age <- mean(dft$age, trim = 0, na.rm = TRUE)
+
+#Now assigning mean age to anywhere there's an NA value in age
+dft$age[is.na(dft$age)] <- mean_age
+```
+
+##3: Lifeboat
+
+Here we are tasked to input the string "NA" or "None" for missing values in the Lifeboat factor, where people did not get a lifeboat, because why would an unsinkable ship need enough lifeboats?
+
+```{r}
+#Subbing "None" in for blank values.
+dft$boat <- sub("^$", "None", dft$boat)
+```
+
+##4: Cabin
+
+We are faced with the issue of missing cabin number, and tasked to create a new column "has_cabin_number" which contains 1 with a value present and 0 if no value is present.
+
+```{r}
+#Using ifelse() to create the logical vector described above
+dft$has_cabin_number <- ifelse(dft$cabin=="", 0, 1)
+```
+
+To answer the questions stated in the problem: 
+
+-a missing cabin value could indicate some kind of bias. Maybe people in lower class cabins were intentionally leaving it blank and sneaking into higher class quarters. This could indicate a changed likelihood of survival. 
+
+As we saw with the embark factor-variable, all of the missing values had the same result, which is indicative of bias. There are many reasons bias could creep in here, and only the data will show the story, but it would be foolish to assume these values are missing on a perfectly random distribution.
+
+-a missing value here to me just means we have to create a new dummy variable and see what kind of bias this data omission created in our results. It will be up to us to determine whether those results are due to chance or some extra-meaningful causal relationship.
+
+##5: Submit the project on Github
+
+Thanks for reading. 
+
+```{r}
+write.csv(dft, file="titanic_clean.csv", row.names = FALSE)
+```
+
